@@ -6,7 +6,7 @@ Recommended on individual targets.  Slower when scanning multiple targets/networ
 ## Examples
 ### All port verbose version scan on target
 ```
-$> sudo nmap -sV -p- -vv $IP 
+$> sudo nmap -A -Pn -p- -vv $IP 
 ```
 #### Flags
 ##### sV
@@ -22,3 +22,7 @@ Will run the Nmap Script Explorer, specifically the scripts under vuln.
 
 Scripts are located at the following in kali:
 `/usr/share/nmap/scripts`
+### Outputting to all file types
+```
+sudo nmap -A -p- -vv $IP -oA box_nmap_all
+```
