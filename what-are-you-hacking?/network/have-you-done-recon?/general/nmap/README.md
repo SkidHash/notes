@@ -26,3 +26,11 @@ Scripts are located at the following in kali:
 ```
 sudo nmap -A -p- -vv $IP -oA box_nmap_all
 ```
+### slow UDP Scan all ports (slooooooow)
+```
+sudo nmap -sU -p- -vv $IP -oA box_nmap_udp
+```
+### fast UDP Scan all ports (fast but inaccurate)
+```
+sudo nmap -sU -p- -vv $IP -T5 -oA box_nmap_udp
+```
