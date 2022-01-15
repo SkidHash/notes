@@ -55,3 +55,6 @@ Some practical examples of null byte injection for LFI:
 
     vuln.php?page=/etc/passwd%2500
 ```
+
+# GitHub payload list
+https://github.com/payloadbox/rfi-lfi-payload-list
