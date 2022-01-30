@@ -1,4 +1,6 @@
 # ftp
+## Default port
+21
 ## Examples
 ### FTP to an IP and port
 ```

@@ -1,4 +1,6 @@
 # mysql
+## Default Port
+3305
 ## Example
 ### Connect to remote host
 ```
