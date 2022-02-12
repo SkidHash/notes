@@ -12,6 +12,7 @@ Throw the results of nmap into searchsploit
 <summary>FTP</summary>
 
 #### FTP
+
 ##### TFTP
 ##### SFTP
 
@@ -21,6 +22,18 @@ Throw the results of nmap into searchsploit
 <summary>Website</summary>
 
 #### Website
+##### sub domains
+1.  Try sublist3r or crt.sh or equivalent to list subdomains
+1.  Look for internal dev/stage domains
+    1.  also look for dev stuff like bitbucket or github
+    1.  sso domains
+1.  try poking sensitive subdomains
+    1.  tomnomnom httpprobe
+    1.  nmap ping scan
+
+##### webserver tech stack
+1.  Try looking on https://builtwith.com
+1.  Try looking at wappalyzer
 
 </details>
 
